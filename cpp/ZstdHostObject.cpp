@@ -34,15 +34,14 @@ namespace rnzstd {
     jsi::Value JSICompressBuffer(jsi::Runtime &runtime, 
                                 jsi::ArrayBuffer &buffIn, 
                                 int compressionLevel) {
-        const auto _buffIn = buffIn.data(runtime);
-        const auto buffSize = buffIn.size(runtime);
-
         size_t compressedSizeOut;
+        const auto buffSize = buffIn.size(runtime);
+        const auto _buffIn = buffIn.data(runtime);
+
         auto buffOut = compressBuffer(_buffIn, buffSize, compressionLevel, compressedSizeOut);
-
-        delete[] _buffIn;
-
         auto arr = bytesToJSIArray(runtime, buffOut, compressedSizeOut);
+
+        delete[] buffOut;
 
         return {runtime, arr};
     }
@@ -63,12 +62,11 @@ namespace rnzstd {
 
 
 jsi::Value JSIDecompressBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) {
+        size_t decompressedSizeOut;
         const auto buffSize = buffIn.size(runtime);
         const auto _buffIn = reinterpret_cast<const uint8_t*>(buffIn.data(runtime));
 
-        size_t decompressedSizeOut;
         auto buffOut = decompressBuffer(_buffIn, buffSize, decompressedSizeOut);
-
         auto arr = bytesToJSIArray(runtime, buffOut, decompressedSizeOut);
 
         delete[] buffOut;
