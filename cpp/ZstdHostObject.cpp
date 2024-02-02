@@ -31,6 +31,22 @@ namespace rnzstd {
         return {runtime, arr};
     }
 
+    jsi::Value JSICompressBuffer(jsi::Runtime &runtime, 
+                                jsi::ArrayBuffer &buffIn, 
+                                int compressionLevel) {
+        const auto _buffIn = buffIn.data(runtime);
+        const auto buffSize = buffIn.size(runtime);
+
+        size_t compressedSizeOut;
+        auto buffOut = compressBuffer(_buffIn, buffSize, compressionLevel, compressedSizeOut);
+
+        delete[] _buffIn;
+
+        auto arr = bytesToJSIArray(runtime, buffOut, compressedSizeOut);
+
+        return {runtime, arr};
+    }
+
     jsi::Value JSIDecompress(jsi::Runtime &runtime,
                              jsi::ArrayBuffer &buffIn) {
         unsigned int compressedSizeOut;
@@ -45,6 +61,21 @@ namespace rnzstd {
         return {runtime, str};
     }
 
+
+jsi::Value JSIDecompressBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) {
+        const auto buffSize = buffIn.size(runtime);
+        const auto _buffIn = reinterpret_cast<const uint8_t*>(buffIn.data(runtime));
+
+        size_t decompressedSizeOut;
+        auto buffOut = decompressBuffer(_buffIn, buffSize, decompressedSizeOut);
+
+        auto arr = bytesToJSIArray(runtime, buffOut, decompressedSizeOut);
+
+        delete[] buffOut;
+
+        return {runtime, arr};
+    }
+
     ZstdHostObject::ZstdHostObject() {
         this->fields.insert(GET_FIELD("compress",
                                       {
@@ -53,11 +84,30 @@ namespace rnzstd {
                                           auto compressionLevel = arguments[1].getNumber();
                                           return JSICompress(runtime, buffIn, compressionLevel);
                                       }));
+
+        this->fields.insert(GET_FIELD("compressBuffer",
+                                      {
+                                          CHECK(count != 2, "compressBuffer(...) expects 2 arguments")
+                                          jsi::ArrayBuffer buffIn = arguments[0].getObject(runtime).getArrayBuffer(runtime);
+                                          auto compressionLevel = arguments[1].getNumber();
+                                          return JSICompressBuffer(runtime, buffIn, compressionLevel);
+                                      }));
+
         this->fields.insert(GET_FIELD("decompress", {
             CHECK(count != 1, "decompress(...) expects 1 argument")
             jsi::ArrayBuffer buffIn = arguments[0].getObject(runtime).getArrayBuffer(runtime);
            try {
                 return JSIDecompress(runtime, buffIn);
+           } catch(const ZstdError &err){
+               throw jsi::JSError(runtime, err.what());
+           }
+        }));
+
+        this->fields.insert(GET_FIELD("decompressBuffer", {
+            CHECK(count != 1, "decompressBuffer(...) expects 1 argument")
+            jsi::ArrayBuffer buffIn = arguments[0].getObject(runtime).getArrayBuffer(runtime);
+           try {
+                return JSIDecompressBuffer(runtime, buffIn);
            } catch(const ZstdError &err){
                throw jsi::JSError(runtime, err.what());
            }

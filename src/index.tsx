@@ -27,7 +27,9 @@ const _Zstd = ZstdModule
 
 interface IZstdNative {
   compress(data: string, compressLevel: number): Buffer;
+  compressBuffer(data: ArrayBuffer, compressLevel: number): Buffer;
   decompress(data: ArrayBuffer): string;
+  decompressBuffer(data: ArrayBuffer): Buffer;
 }
 
 if ((global as any).__ZSTDProxy == null) {
@@ -36,12 +38,33 @@ if ((global as any).__ZSTDProxy == null) {
 
 const ZstdNative: IZstdNative = (global as any).__ZSTDProxy;
 
-export function compress(data: string, compressLevel: number = 3): Buffer {
+const compress = (data: string, compressLevel: number = 3): Buffer => {
   const out = ZstdNative.compress(data, compressLevel);
   return Buffer.from(out);
-}
+};
 
-export function decompress(data: Buffer): string {
+const compressBuffer = (
+  data: ArrayBuffer,
+  compressLevel: number = 3
+): Buffer => {
+  const out = ZstdNative.compressBuffer(data, compressLevel);
+  return Buffer.from(out);
+};
+
+const decompress = (data: Buffer): string => {
   const out = ZstdNative.decompress(data.buffer);
   return out;
-}
+};
+
+const decompressBuffer = (data: Buffer): Buffer => {
+  const out = ZstdNative.decompressBuffer(data.buffer);
+  return Buffer.from(out);
+};
+
+const Zstd = {
+  compress,
+  compressBuffer,
+  decompress,
+  decompressBuffer,
+};
+export default Zstd;
