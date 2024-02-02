@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   s.compiler_flags = zstd_compiler_flags
 
   s.pod_target_xcconfig    = {
-    "CLANG_CXX_LANGUAGE_STANDARD" => "c++11"
+    "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
   }
 
 
