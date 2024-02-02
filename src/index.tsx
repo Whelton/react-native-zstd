@@ -38,12 +38,12 @@ if ((global as any).__ZSTDProxy == null) {
 
 const ZstdNative: IZstdNative = (global as any).__ZSTDProxy;
 
-const compress = (data: string, compressLevel: number = 3): Buffer => {
+export const compress = (data: string, compressLevel: number = 3): Buffer => {
   const out = ZstdNative.compress(data, compressLevel);
   return Buffer.from(out);
 };
 
-const compressBuffer = (
+export const compressBuffer = (
   data: ArrayBuffer,
   compressLevel: number = 3
 ): Buffer => {
@@ -51,12 +51,12 @@ const compressBuffer = (
   return Buffer.from(out);
 };
 
-const decompress = (data: Buffer): string => {
+export const decompress = (data: Buffer): string => {
   const out = ZstdNative.decompress(data.buffer);
   return out;
 };
 
-const decompressBuffer = (data: Buffer): Buffer => {
+export const decompressBuffer = (data: Buffer): Buffer => {
   const out = ZstdNative.decompressBuffer(data.buffer);
   return Buffer.from(out);
 };
