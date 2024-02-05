@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2)
 project(reactnativezstd CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 #
 set(ZSTD_BUILD_PROGRAMS OFF) # Avoid  Target "zstd" of type EXECUTABLE may not be linked into another target error
@@ -23,7 +23,7 @@ add_library(reactnativezstd
         ../cpp/jsi-utils/JSIUtils.cpp
         ../cpp/ZstdHostObject.cpp
         #        To avoid: undefined reference to 'facebook::jsi::Value::~Value()'
-        ../../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
+        ../../../react-native/ReactCommon/jsi/jsi/jsi.cpp
         )
 
 target_include_directories(
@@ -31,7 +31,7 @@ target_include_directories(
         PUBLIC
         ../externals/zstd/lib
         ../cpp
-        ../../node_modules/react-native/ReactCommon/jsi
+        ../../../react-native/ReactCommon/jsi
 )
 
 
