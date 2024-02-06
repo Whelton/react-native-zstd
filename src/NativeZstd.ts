@@ -6,6 +6,7 @@ export interface Spec extends TurboModule {
   compressBuffer(data: ArrayBuffer, compressLevel: number): Buffer;
   decompress(data: ArrayBuffer): string;
   decompressBuffer(data: ArrayBuffer): Buffer;
+  decompressStreamBuffer(data: ArrayBuffer): Buffer;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Zstd');

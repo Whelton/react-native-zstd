@@ -19,6 +19,10 @@ namespace rnzstd {
                                       size_t sourceSize, 
                                       size_t &decompressedSizeOut);
 
+    uint8_t *decompressStreamBuffer(const uint8_t *buffIn, 
+                                          size_t sourceSize, 
+                                          size_t &decompressedSizeOut);
+
     class ZstdError : public std::runtime_error {
     public:
         explicit ZstdError(const std::string &msg) : std::runtime_error{msg} {}

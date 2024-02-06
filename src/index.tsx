@@ -30,6 +30,7 @@ interface IZstdNative {
   compressBuffer(data: ArrayBuffer, compressLevel: number): Buffer;
   decompress(data: ArrayBuffer): string;
   decompressBuffer(data: ArrayBuffer): Buffer;
+  decompressStreamBuffer(data: ArrayBuffer): Buffer;
 }
 
 if ((global as any).__ZSTDProxy == null) {
@@ -61,10 +62,16 @@ export const decompressBuffer = (data: Buffer): Buffer => {
   return Buffer.from(out);
 };
 
+export const decompressStreamBuffer = (data: Buffer): Buffer => {
+  const out = ZstdNative.decompressStreamBuffer(data.buffer);
+  return Buffer.from(out);
+};
+
 const Zstd = {
   compress,
   compressBuffer,
   decompress,
   decompressBuffer,
+  decompressStreamBuffer,
 };
 export default Zstd;

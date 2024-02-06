@@ -61,12 +61,25 @@ namespace rnzstd {
     }
 
 
-jsi::Value JSIDecompressBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) {
+    jsi::Value JSIDecompressBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) {
         size_t decompressedSizeOut;
         const auto buffSize = buffIn.size(runtime);
         const auto _buffIn = reinterpret_cast<const uint8_t*>(buffIn.data(runtime));
 
         auto buffOut = decompressBuffer(_buffIn, buffSize, decompressedSizeOut);
+        auto arr = bytesToJSIArray(runtime, buffOut, decompressedSizeOut);
+
+        delete[] buffOut;
+
+        return {runtime, arr};
+    }
+
+    jsi::Value JSIDecompressStreamBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) {
+        size_t decompressedSizeOut;
+        const auto buffSize = buffIn.size(runtime);
+        const auto _buffIn = reinterpret_cast<const uint8_t*>(buffIn.data(runtime));
+
+        auto buffOut = decompressStreamBuffer(_buffIn, buffSize, decompressedSizeOut);
         auto arr = bytesToJSIArray(runtime, buffOut, decompressedSizeOut);
 
         delete[] buffOut;
@@ -106,6 +119,16 @@ jsi::Value JSIDecompressBuffer(jsi::Runtime &runtime, jsi::ArrayBuffer &buffIn) 
             jsi::ArrayBuffer buffIn = arguments[0].getObject(runtime).getArrayBuffer(runtime);
            try {
                 return JSIDecompressBuffer(runtime, buffIn);
+           } catch(const ZstdError &err){
+               throw jsi::JSError(runtime, err.what());
+           }
+        }));
+
+        this->fields.insert(GET_FIELD("decompressStreamBuffer", {
+            CHECK(count != 1, "decompressStreamBuffer(...) expects 1 argument")
+            jsi::ArrayBuffer buffIn = arguments[0].getObject(runtime).getArrayBuffer(runtime);
+           try {
+                return JSIDecompressStreamBuffer(runtime, buffIn);
            } catch(const ZstdError &err){
                throw jsi::JSError(runtime, err.what());
            }

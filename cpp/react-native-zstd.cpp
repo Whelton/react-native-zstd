@@ -83,4 +83,51 @@ namespace rnzstd {
         return buffOut;
     }
 
+    uint8_t *decompressStreamBuffer(const uint8_t *buffIn, size_t sourceSize, size_t &decompressedSizeOut) {
+        // References:
+        // - https://github.com/google/sandboxed-api/blob/f708270f350ed1ba5c4a751abba6ff2d8e2442eb/contrib/zstd/wrapper/wrapper_zstd.cc#L147
+
+        unsigned long long const outputSize = ZSTD_getFrameContentSize(buffIn, sourceSize);
+        if (outputSize == ZSTD_CONTENTSIZE_ERROR) {
+            throw ZstdError("Not compressed by zstd");
+        }
+
+        ZSTD_DCtx* dctx = ZSTD_createDCtx();
+        size_t const sizein = ZSTD_CStreamInSize();
+        size_t const sizeout = ZSTD_CStreamOutSize();
+
+        auto bufin = std::make_unique<uint8_t[]>(sizein);
+        auto bufout = std::make_unique<uint8_t[]>(sizeout);
+
+        size_t readPos = 0;
+        size_t decompressedSize = 0;
+        std::vector<uint8_t> decompressedData;
+
+        while (readPos < sourceSize) {
+            size_t toRead = std::min(sizein, sourceSize - readPos);
+            memcpy(bufin.get(), buffIn + readPos, toRead);
+            ZSTD_inBuffer input = { bufin.get(), toRead, 0 };
+
+            while (input.pos < input.size) {
+                ZSTD_outBuffer output = { bufout.get(), sizeout, 0 };
+                size_t ret = ZSTD_decompressStream(dctx, &output, &input);
+                if (ZSTD_isError(ret)) {
+                    ZSTD_freeDCtx(dctx);
+                    throw ZstdError(ZSTD_getErrorName(ret));
+                }
+                decompressedData.insert(decompressedData.end(), bufout.get(), bufout.get() + output.pos);
+                decompressedSize += output.pos;
+            }
+            readPos += toRead;
+        }
+
+        ZSTD_freeDCtx(dctx);
+
+        auto decompressedBuff = new uint8_t[decompressedSize];
+        memcpy(decompressedBuff, decompressedData.data(), decompressedSize);
+        decompressedSizeOut = decompressedSize;
+
+        return decompressedBuff;
+    }
+
 }
