@@ -2,6 +2,7 @@
 #include "zstd.h"
 
 #include <cstring>
+#include <vector>
 
 
 namespace rnzstd {
